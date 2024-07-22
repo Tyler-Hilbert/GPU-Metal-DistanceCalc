@@ -17,13 +17,13 @@ struct XYPoint {
     float y;
 };
 
-std::vector<XYPoint> readCSV(const std::string& filename) {
+vector<XYPoint> readCSV(const string& filename) {
     vector<XYPoint> points;
     ifstream file(filename);
     string line, token;
 
     if (!file.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
+        cerr << "Failed to open file: " << filename << "\n";
         return points;
     }
 
@@ -33,9 +33,9 @@ std::vector<XYPoint> readCSV(const std::string& filename) {
         istringstream ss(line);
         XYPoint point;
         getline(ss, token, ',');
-        point.x = std::stof(token);
+        point.x = stof(token);
         getline(ss, token, ',');
-        point.y = std::stof(token);
+        point.y = stof(token);
         points.push_back(point);
     }
 
@@ -68,7 +68,7 @@ int main() {
     vector<XYPoint> points = readCSV("points.csv");
 
     if (points.empty()) {
-        cerr << "No points loaded from the CSV file." << std::endl;
+        cerr << "No points loaded from the CSV file.\n";
         return -1;
     }
 
@@ -77,19 +77,19 @@ int main() {
 
     MTL::Library* library = device->newLibrary(NS::String::string(kernelSrc, NS::UTF8StringEncoding), nullptr, &error);
     if (!library) {
-        cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << std::endl;
+        cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
     }
 
     MTL::Function* kernelFunction = library->newFunction(NS::String::string("calculate_distances", NS::UTF8StringEncoding));
     if (!kernelFunction) {
-        cerr << "Failed to load kernel function" << std::endl;
+        cerr << "Failed to load kernel function\n";
         return -1;
     }
 
     MTL::ComputePipelineState* pipelineState = device->newComputePipelineState(kernelFunction, &error);
     if (!pipelineState) {
-        cerr << "Failed to create compute pipeline state: " << error->localizedDescription()->utf8String() << std::endl;
+        cerr << "Failed to create compute pipeline state: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
     }
 
@@ -120,7 +120,7 @@ int main() {
 
     float* distances = reinterpret_cast<float*>(distancesBuffer->contents());
 
-    cout << "Distance Matrix:" << std::endl;
+    cout << "Distance Matrix:\n";
     for (int i = 0; i < points.size(); ++i) {
         cout << distances[i] << " ";
     }
