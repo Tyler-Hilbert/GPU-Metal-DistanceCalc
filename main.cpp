@@ -15,6 +15,68 @@ using namespace std;
 
 /////////////////// Kernels //////////////////////////////
 
+
+const char* convert_to_cartesian_kernelSrc = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+struct XYPoint {
+    int x;
+    int y;
+    int z;
+};
+
+struct EquatorialPointRadians {
+    char name[50];
+    float RA;
+    float DEC;
+    int lightYears;
+};
+
+kernel void convert_to_cartesian(
+    constant EquatorialPointRadians* pointsEquatorial [[ buffer(0) ]],
+    device XYPoint* pointsXY [[ buffer(1) ]],
+    uint id [[ thread_position_in_grid ]]
+) {
+
+    EquatorialPointRadians pe = pointsEquatorial[id];
+    
+    int x = pe.lightYears * cos(pe.DEC) * cos(pe.RA);
+    int y = pe.lightYears * cos(pe.DEC) * sin(pe.RA);
+    int z = pe.lightYears * sin(pe.DEC);
+    
+    // Store the Cartesian point
+    pointsXY[id] = XYPoint{x, y, z};
+}
+)";
+
+
+const char* calculate_distances_kernelSrc = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+struct XYPoint {
+    int x;
+    int y;
+    int z;
+};
+
+kernel void calculate_distances(
+    constant XYPoint* points [[ buffer(0) ]],
+    device int* distances [[ buffer(1) ]],
+    constant int& startIndex [[buffer(2)]],
+    uint id [[ thread_position_in_grid ]]
+) {
+    int dx = points[startIndex].x - points[id].x;
+    int dy = points[startIndex].y - points[id].y;
+    int dz = points[startIndex].z - points[id].z;
+
+    float distanceSquared = (float)(dx*dx + dy*dy + dz*dz);
+    distances[id] = (int)sqrt(distanceSquared);
+}
+)";
+
+
 // Converts the equatorial point to equatorial radians
 const char* convert_to_radians_kernelSrc = R"(
 #include <metal_stdlib>
@@ -180,64 +242,6 @@ kernel void convert_to_radians(
 }
 )";
 
-const char* convert_to_cartesian_kernelSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct XYPoint {
-    int x;
-    int y;
-    int z;
-};
-
-struct EquatorialPointRadians {
-    char name[50];
-    float RA;
-    float DEC;
-    int lightYears;
-};
-
-kernel void convert_to_cartesian(
-    constant EquatorialPointRadians* pointsEquatorial [[ buffer(0) ]],
-    device XYPoint* pointsXY [[ buffer(1) ]],
-    uint id [[ thread_position_in_grid ]]
-) {
-
-    EquatorialPointRadians pe = pointsEquatorial[id];
-    
-    int x = pe.lightYears * cos(pe.DEC) * cos(pe.RA);
-    int y = pe.lightYears * cos(pe.DEC) * sin(pe.RA);
-    int z = pe.lightYears * sin(pe.DEC);
-    
-    // Store the Cartesian point
-    pointsXY[id] = XYPoint{x, y, z};
-}
-)";
-
-const char* calculate_distances_kernelSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct XYPoint {
-    int x;
-    int y;
-    int z;
-};
-
-kernel void calculate_distances(
-    constant XYPoint* points [[ buffer(0) ]],
-    device int* distances [[ buffer(1) ]],
-    constant int& startIndex [[buffer(2)]],
-    uint id [[ thread_position_in_grid ]]
-) {
-    int dx = points[startIndex].x - points[id].x;
-    int dy = points[startIndex].y - points[id].y;
-    int dz = points[startIndex].z - points[id].z;
-
-    float distanceSquared = (float)(dx*dx + dy*dy + dz*dz);
-    distances[id] = (int)sqrt(distanceSquared);
-}
-)";
 
 /////////////////// Structs //////////////////////////////
 /// Don't forget to update in the kernel also!
