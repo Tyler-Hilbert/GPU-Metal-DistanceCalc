@@ -318,7 +318,7 @@ vector<EquatorialPoint> readCSV(const string& filename) {
 int main() {
     
     // Read in data and display
-    vector<EquatorialPoint> equatorialPoints = readCSV("/Users/tyler/Documents/Coding/GPU-Metal-DistanceCalc/GPU-Metal-DistanceCalc/galaxies_equatorial_lyprocess.csv");
+    vector<EquatorialPoint> equatorialPoints = readCSV("galaxies_equatorial_lyprocess.csv");
     if (equatorialPoints.empty()) {
         cerr << "No points loaded from the CSV file.\n";
         return -1;
