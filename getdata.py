@@ -1,3 +1,7 @@
+# NOTE THE LIGHT YEARS OUTPUT NEEDS TO BE MANUALLY FIXED DUE TO DIFFERENT UNITS
+# NOTE Also need to remove , from names and a couple DEC / RA value manually. Will get around to doing it in script later.
+
+
 # Iterates over data from https://en.wikipedia.org/wiki/List_of_nearest_galaxies and collects ra, dec and light years.
 # Outputs data to csv.
 
