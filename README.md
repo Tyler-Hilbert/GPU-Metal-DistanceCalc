@@ -8,3 +8,6 @@
 2) Add Metal and Foundation to your build
 3) Downlaod metal-cpp
 4) add metal-cpp/ to header search path
+
+# Data Collection  
+Python script with nested requests to scrape data from each galaxy linked on this list https://en.wikipedia.org/wiki/List_of_nearest_galaxies  
