@@ -1,3 +1,12 @@
+//  Calculates the distance between every galaxy and the point at index startIndex.
+// Both calculations and preprocessing is done on GPU using Metal.
+// Precursor project in CUDA https://github.com/Tyler-Hilbert/SpaceTripPlanner
+// Don't forget to include metal-cpp library in header search path in addition to linking Metal.framework and Foundation.framework in project link build phases in Xcode!
+
+
+#define ROOT "YOUR_FULL_PATH/GPU-Metal-DistanceCalc/"
+
+
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 #define MTL_PRIVATE_IMPLEMENTATION
@@ -10,264 +19,15 @@
 #include <Metal/Metal.hpp>
 #include <Foundation/Foundation.hpp>
 
+
+#include "XYZPoint.hpp"
+#include "EquatorialPoint.hpp"
+#include "EquatorialPointRadians.hpp"
+
+
 using namespace std;
 
 
-/////////////////// Kernels //////////////////////////////
-
-
-const char* convert_to_cartesian_kernelSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct XYPoint {
-    int x;
-    int y;
-    int z;
-};
-
-struct EquatorialPointRadians {
-    char name[50];
-    float RA;
-    float DEC;
-    int lightYears;
-};
-
-kernel void convert_to_cartesian(
-    constant EquatorialPointRadians* pointsEquatorial [[ buffer(0) ]],
-    device XYPoint* pointsXY [[ buffer(1) ]],
-    uint id [[ thread_position_in_grid ]]
-) {
-
-    EquatorialPointRadians pe = pointsEquatorial[id];
-    
-    int x = pe.lightYears * cos(pe.DEC) * cos(pe.RA);
-    int y = pe.lightYears * cos(pe.DEC) * sin(pe.RA);
-    int z = pe.lightYears * sin(pe.DEC);
-    
-    // Store the Cartesian point
-    pointsXY[id] = XYPoint{x, y, z};
-}
-)";
-
-
-const char* calculate_distances_kernelSrc = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct XYPoint {
-    int x;
-    int y;
-    int z;
-};
-
-kernel void calculate_distances(
-    constant XYPoint* points [[ buffer(0) ]],
-    device int* distances [[ buffer(1) ]],
-    constant int& startIndex [[buffer(2)]],
-    uint id [[ thread_position_in_grid ]]
-) {
-    int dx = points[startIndex].x - points[id].x;
-    int dy = points[startIndex].y - points[id].y;
-    int dz = points[startIndex].z - points[id].z;
-
-    float distanceSquared = (float)(dx*dx + dy*dy + dz*dz);
-    distances[id] = (int)sqrt(distanceSquared);
-}
-)";
-
-
-// Converts the equatorial point to equatorial radians
-const char* convert_to_radians_kernelSrc = R"(
-#include <metal_stdlib>
-#define M_PI  3.14159265358979323846
-using namespace metal;
-
-
-struct EquatorialPoint {
-    char name[50];
-    char RA[50];
-    char DEC[50];
-    char lightYears[100];
-};
-
-struct EquatorialPointRadians {
-    char name[50];
-    float RA;
-    float DEC;
-    int lightYears;
-};
-
-int atoi(const char str[100]) {
-    int res = 0; // Initialize result
-    int sign = 1; // Initialize sign as positive
-    int i = 0; // Initialize index of first digit
-
-    // If number is negative, then update sign
-    if (str[0] == '-') {
-        sign = -1;
-        i++; // Also update index of first digit
-    }
-
-    // Iterate through all digits and update the result
-    for (; str[i] != '\0'; ++i)
-        res = res * 10 + str[i] - '0';
-
-    // Return result with sign
-    return sign * res;
-}
-
-float atof(const char str[50]) {
-    float res = 0.0; // Initialize result
-    float factor = 1.0;
-    int sign = 1; // Initialize sign as positive
-    int i = 0; // Initialize index of first digit
-
-    // If number is negative, then update sign
-    if (str[0] == '-') {
-        sign = -1;
-        i++; // Also update index of first digit
-    }
-
-    // Iterate through all digits before the decimal point and update the result
-    for (; str[i] != '\0' && str[i] != '.'; ++i)
-        res = res * 10.0 + str[i] - '0';
-
-    // If there is a decimal point, iterate through all digits after the decimal point
-    if (str[i] == '.') {
-        i++;
-        for (; str[i] != '\0'; ++i) {
-            factor *= 0.1;
-            res = res + (str[i] - '0') * factor;
-        }
-    }
-
-    // Return result with sign
-    return sign * res;
-}
-
-kernel void convert_to_radians(
-    constant EquatorialPoint* points [[ buffer(0) ]],
-    device EquatorialPointRadians* pointsRadians [[ buffer(1) ]],
-    uint id [[ thread_position_in_grid ]]
-) {
-
-    EquatorialPoint p = points[id];
-    EquatorialPointRadians pr;
-
-    // RA
-    int tempIndex = 0;
-    char temp[50];
-    int mode = 0; // 0 for hours, 1 for minutes, 2 for seconds
-    int h = 0, m = 0;
-    float s = 0.0;
-
-    for (int i = 0 ;; i++) {
-        char c = p.RA[i];
-        if ((c >= '0' && c <= '9') || (c == '.' && mode  != 2)) {
-            temp[tempIndex++] = c;
-        } else {
-            temp[tempIndex] = '\0';
-            tempIndex = 0;
-            if (mode == 0) {
-                h = atoi(temp);
-                mode = 1;
-            } else if (mode == 1) {
-                m = atoi(temp);
-                mode = 2;
-            } else if (mode == 2) {
-                s = atof(temp);
-                break;
-            }
-        }
-    }
-    pr.RA = (h + m/60.0 + s/3600.0) * (M_PI / 12.0) ;
-
-
-    // DEC
-    int d = 0;
-    m = 0;
-    s = 0.0;
-    char temp2[50];
-    tempIndex = 0;
-    mode = 0; // 0 for degrees, 1 for minutes, 2 for seconds
-    int sign = 1;
-
-    for (int i = 0 ;; i++) {
-        char c = p.DEC[i];
-        if (c == '-') {
-            sign = -1;
-        }
-        if ((c >= '0' && c <= '9') || (c == '.' && mode != 2)) {
-            temp2[tempIndex++] = c;
-        } else {
-            if (tempIndex > 0) {
-                temp2[tempIndex] = '\0';
-                tempIndex = 0;
-                if (mode == 0) {
-                    d = atoi(temp2) * sign;
-                    mode = 1;
-                } else if (mode == 1) {
-                    m = atoi(temp2);
-                    mode = 2;
-                } else if (mode == 2) {
-                    s = atof(temp2);
-                    break;
-                }
-            }
-        }
-    }
-    pr.DEC = (d + m/60.0 + s / 3600.0) * (M_PI / 180.0);
-
-
-    // Light Years
-    char temp3[50];
-    tempIndex = 0;
-    for (int i = 0 ;; i++) {
-        char c = p.lightYears[i];
-        if (c >= '0' && c <= '9') {
-            temp3[tempIndex++] = c;
-        } else {
-            break;
-        }
-    }
-    pr.lightYears = atoi(temp3);
-
-
-    for (int i = 0; i < 50; i++) {
-        pr.name[i] = p.name[i];
-    }
-    
-    pointsRadians[id] = pr;
-}
-)";
-
-
-/////////////////// Structs //////////////////////////////
-/// Don't forget to update in the kernel also!
-
-struct EquatorialPoint {
-    char name[50];
-    char RA[50]; // In Hours, Minutes and Seconds
-    char DEC[50]; // In Arcminutes and Arcseconds
-    char lightYears[100];
-};
-
-struct EquatorialPointRadians {
-    char name[50];
-    float RA;
-    float DEC;
-    int lightYears;
-};
-
-struct XYPoint {
-    int x;
-    int y;
-    int z;
-};
-
-
-/////////////////// CPU Code //////////////////////////////
 
 // Returns a vector of all complete EquatorialPoint values from the CSV
 vector<EquatorialPoint> readCSV(const string& filename) {
@@ -318,11 +78,27 @@ vector<EquatorialPoint> readCSV(const string& filename) {
     return points;
 }
 
+// Is there a wrapper for https://developer.apple.com/documentation/foundation/nsstring/1497327-stringwithcontentsoffile
+string readKernelSource(const string& filePath) {
+    string fullPath = string(ROOT) + filePath;
+    printf ("Kernel Path %s\n", fullPath.c_str());
+    ifstream file(fullPath);
+    if (!file.is_open()) {
+        cerr << "Failed to open kernel file: " << filePath << "\n";
+        return "";
+    }
+    
+    stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
 
 int main() {
     
     // Read in data and display
-    vector<EquatorialPoint> equatorialPoints = readCSV("data_collection/galaxies_equatorial_lyprocess.csv");
+    string csvPath = string(ROOT) + "/data_collection/galaxies_equatorial_lyprocess.csv";
+    vector<EquatorialPoint> equatorialPoints = readCSV(csvPath);
     if (equatorialPoints.empty()) {
         cerr << "No points loaded from the CSV file.\n";
         return -1;
@@ -335,8 +111,14 @@ int main() {
     // Convert to radians on GPU
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
     NS::Error* error = nullptr;
+    
+    string radiansKernelSource = readKernelSource("convert_to_radians.metal");
+    if (radiansKernelSource.empty()) {
+        return -1;
+    }
+    NS::String* radiansKernelNSStr = NS::String::string(radiansKernelSource.c_str(), NS::UTF8StringEncoding);
 
-    MTL::Library* library = device->newLibrary(NS::String::string(convert_to_radians_kernelSrc, NS::UTF8StringEncoding), nullptr, &error);
+    MTL::Library* library = device->newLibrary(radiansKernelNSStr, nullptr, &error);
     if (!library) {
         cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
@@ -396,7 +178,13 @@ int main() {
     
     
     // Convert to cartesian
-    MTL::Library* library2 = device->newLibrary(NS::String::string(convert_to_cartesian_kernelSrc, NS::UTF8StringEncoding), nullptr, &error);
+    string cartesianKernelSource = readKernelSource("convert_to_cartesian.metal");
+    if (cartesianKernelSource.empty()) {
+        return -1;
+    }
+    NS::String* cartesianKernelNSStr = NS::String::string(cartesianKernelSource.c_str(), NS::UTF8StringEncoding);
+
+    MTL::Library* library2 = device->newLibrary(cartesianKernelNSStr, nullptr, &error);
     if (!library2) {
         cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
@@ -417,15 +205,15 @@ int main() {
     MTL::CommandQueue* commandQueue2 = device->newCommandQueue();
     
     MTL::Buffer* bufferTwoRad = device->newBuffer(equatorialPointsRadians.data(), equatorialPointsRadians.size() * sizeof(EquatorialPointRadians), MTL::ResourceStorageModeShared);
-    vector<XYPoint> xyPoints(equatorialPoints.size());
-    MTL::Buffer* bufferTwoXY = device->newBuffer(xyPoints.data(), xyPoints.size() * sizeof(XYPoint), MTL::ResourceStorageModeShared);
+    vector<XYZPoint> xyzPoints(equatorialPoints.size());
+    MTL::Buffer* bufferTwoXYZ = device->newBuffer(xyzPoints.data(), xyzPoints.size() * sizeof(XYZPoint), MTL::ResourceStorageModeShared);
 
     MTL::CommandBuffer* commandBuffer2 = commandQueue2->commandBuffer();
     MTL::ComputeCommandEncoder* computeEncoder2 = commandBuffer2->computeCommandEncoder();
 
     computeEncoder2->setComputePipelineState(pipelineState2);
     computeEncoder2->setBuffer(bufferTwoRad, 0, 0);
-    computeEncoder2->setBuffer(bufferTwoXY, 0, 1);
+    computeEncoder2->setBuffer(bufferTwoXYZ, 0, 1);
 
     computeEncoder2->dispatchThreads(gridSize, threadGroupSize);
     computeEncoder2->endEncoding();
@@ -433,14 +221,14 @@ int main() {
     commandBuffer2->commit();
     commandBuffer2->waitUntilCompleted();
 
-    memcpy(xyPoints.data(), bufferTwoXY->contents(), xyPoints.size() * sizeof(XYPoint));
+    memcpy(xyzPoints.data(), bufferTwoXYZ->contents(), xyzPoints.size() * sizeof(XYZPoint));
     
     printf ("\nXYZ\n");
-    for (auto point : xyPoints) {
+    for (auto point : xyzPoints) {
         printf ("%i %i %i\n", point.x, point.y, point.z);
     }
     
-    bufferTwoXY->release();
+    bufferTwoXYZ->release();
     bufferTwoRad->release();
     pipelineState2->release();
     kernelFunction2->release();
@@ -451,7 +239,13 @@ int main() {
     
     
     // Calculate distance
-    MTL::Library* library3 = device->newLibrary(NS::String::string(calculate_distances_kernelSrc, NS::UTF8StringEncoding), nullptr, &error);
+    
+    string distanceKernelSource = readKernelSource("calculate_distances.metal");
+    if (distanceKernelSource.empty()) {
+        return -1;
+    }
+    NS::String* distanceKernelNSStr = NS::String::string(distanceKernelSource.c_str(), NS::UTF8StringEncoding);
+    MTL::Library* library3 = device->newLibrary(distanceKernelNSStr, nullptr, &error);
     if (!library3) {
         cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
@@ -471,8 +265,8 @@ int main() {
     
     MTL::CommandQueue* commandQueue3 = device->newCommandQueue();
     
-    MTL::Buffer* bufferThreeXY = device->newBuffer(xyPoints.data(), xyPoints.size() * sizeof(XYPoint), MTL::ResourceStorageModeShared);
-    vector<int> distances(xyPoints.size());
+    MTL::Buffer* bufferThreeXYZ = device->newBuffer(xyzPoints.data(), xyzPoints.size() * sizeof(XYZPoint), MTL::ResourceStorageModeShared);
+    vector<int> distances(xyzPoints.size());
     MTL::Buffer* bufferThreeDistances = device->newBuffer(distances.data(), distances.size() * sizeof(int), MTL::ResourceStorageModeShared);
     int startIndex = 0;
     MTL::Buffer* bufferThreeStart = device->newBuffer(&startIndex, sizeof(int), MTL::ResourceStorageModeShared);
@@ -482,7 +276,7 @@ int main() {
     MTL::ComputeCommandEncoder* computeEncoder3 = commandBuffer3->computeCommandEncoder();
 
     computeEncoder3->setComputePipelineState(pipelineState3);
-    computeEncoder3->setBuffer(bufferThreeXY, 0, 0);
+    computeEncoder3->setBuffer(bufferThreeXYZ, 0, 0);
     computeEncoder3->setBuffer(bufferThreeDistances, 0, 1);
     computeEncoder3->setBuffer(bufferThreeStart, 0, 2);
     
@@ -501,7 +295,7 @@ int main() {
     }
      
      
-    bufferThreeXY->release();
+    bufferThreeXYZ->release();
     bufferThreeDistances->release();
     bufferThreeStart->release();
     pipelineState3->release();
