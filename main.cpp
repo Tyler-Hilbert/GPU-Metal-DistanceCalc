@@ -4,8 +4,8 @@
 // Don't forget to include metal-cpp library in header search path in addition to linking Metal.framework and Foundation.framework in project link build phases in Xcode!
 
 
-#define ROOT "YOUR_FULL_PATH/GPU-Metal-DistanceCalc/"
-
+#define ROOT "YOUR_PATH/GPU-Metal-DistanceCalc/GPU-Metal-DistanceCalc/" // Project path
+#define START_INDEX 0; // The index in the CSV to calculate distances from
 
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
@@ -103,94 +103,97 @@ int main() {
         cerr << "No points loaded from the CSV file.\n";
         return -1;
     }
+    printf("Original data:\n");
     for (auto point : equatorialPoints) {
         printf ("%s %s %s %s\n", point.name, point.RA, point.DEC, point.lightYears);
     }
+    printf("\n\n");
     
-
-    // Convert to radians on GPU
-    MTL::Device* device = MTL::CreateSystemDefaultDevice();
+    vector<XYZPoint> xyzPoints(equatorialPoints.size());
+    
+    
+    
+    
+    // Convert to cartesian on GPU [this is a 2 step process, 1) parse and convert to radians, 2) convert to cartesian]
     NS::Error* error = nullptr;
+    MTL::Device* device = MTL::CreateSystemDefaultDevice();
     
-    string radiansKernelSource = readKernelSource("convert_to_radians.metal");
-    if (radiansKernelSource.empty()) {
+    string kernel1Source = readKernelSource("parse_convert_to_cartesian.metal");
+    if (kernel1Source.empty()) {
         return -1;
     }
-    NS::String* radiansKernelNSStr = NS::String::string(radiansKernelSource.c_str(), NS::UTF8StringEncoding);
-
-    MTL::Library* library = device->newLibrary(radiansKernelNSStr, nullptr, &error);
-    if (!library) {
+    NS::String* kernel1NSStr = NS::String::string(kernel1Source.c_str(), NS::UTF8StringEncoding);
+    MTL::Library* library1 = device->newLibrary(kernel1NSStr, nullptr, &error);
+    if (!library1) {
         cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
     }
-
-    MTL::Function* kernelFunction = library->newFunction(NS::String::string("convert_to_radians", NS::UTF8StringEncoding));
-    if (!kernelFunction) {
+    MTL::Function* kernelFunction1 = library1->newFunction(NS::String::string("parse_convert_to_cartesian", NS::UTF8StringEncoding));
+    if (!kernelFunction1) {
         cerr << "Failed to load kernel function\n";
         return -1;
     }
-
-    MTL::ComputePipelineState* pipelineState = device->newComputePipelineState(kernelFunction, &error);
-    if (!pipelineState) {
+    MTL::ComputePipelineState* pipelineState1 = device->newComputePipelineState(kernelFunction1, &error);
+    if (!pipelineState1) {
         cerr << "Failed to create compute pipeline state: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
     }
-
-    MTL::CommandQueue* commandQueue = device->newCommandQueue();
+    MTL::CommandQueue* commandQueue1 = device->newCommandQueue();
     
     MTL::Buffer* equatorialPointsBuffer = device->newBuffer(equatorialPoints.data(), equatorialPoints.size() * sizeof(EquatorialPoint), MTL::ResourceStorageModeShared);
-    
-    vector<EquatorialPointRadians> equatorialPointsRadians(equatorialPoints.size());
-    MTL::Buffer* equatorialPointsRadiansBuffer = device->newBuffer(equatorialPointsRadians.data(), equatorialPointsRadians.size() * sizeof(EquatorialPointRadians), MTL::ResourceStorageModeManaged);
-
-    MTL::CommandBuffer* commandBuffer = commandQueue->commandBuffer();
-    MTL::ComputeCommandEncoder* computeEncoder = commandBuffer->computeCommandEncoder();
-
-    computeEncoder->setComputePipelineState(pipelineState);
-    computeEncoder->setBuffer(equatorialPointsBuffer, 0, 0);
-    computeEncoder->setBuffer(equatorialPointsRadiansBuffer, 0, 1);
+    MTL::Buffer* cartesianPointsBuffer = device->newBuffer(xyzPoints.data(), xyzPoints.size() * sizeof(XYZPoint), MTL::ResourceStorageModeManaged);
+    MTL::CommandBuffer* commandBuffer1 = commandQueue1->commandBuffer();
+    MTL::ComputeCommandEncoder* computeEncoder1 = commandBuffer1->computeCommandEncoder();
+    computeEncoder1->setComputePipelineState(pipelineState1);
+    computeEncoder1->setBuffer(equatorialPointsBuffer, 0, 0);
+    computeEncoder1->setBuffer(cartesianPointsBuffer, 0, 1);
 
     MTL::Size gridSize(equatorialPoints.size(), 1, 1);
-    MTL::Size threadGroupSize(pipelineState->threadExecutionWidth(), 1, 1);
+    MTL::Size threadGroupSize(pipelineState1->threadExecutionWidth(), 1, 1);
 
-    computeEncoder->dispatchThreads(gridSize, threadGroupSize);
-    computeEncoder->endEncoding();
+    computeEncoder1->dispatchThreads(gridSize, threadGroupSize);
+    computeEncoder1->endEncoding();
 
-    commandBuffer->commit();
-    commandBuffer->waitUntilCompleted();
+    commandBuffer1->commit();
+    commandBuffer1->waitUntilCompleted();
 
-    memcpy(equatorialPointsRadians.data(), equatorialPointsRadiansBuffer->contents(), equatorialPointsRadians.size() * sizeof(EquatorialPointRadians));
     
-    
-    printf ("\nIn radians\n");
-    for (auto p : equatorialPointsRadians) {
-        printf ("name: %s, ra: %f, dec: %f lightyears: %i\n", p.name, p.RA, p.DEC, p.lightYears);
+    // Copy results to CPU
+    memcpy(xyzPoints.data(), cartesianPointsBuffer->contents(), xyzPoints.size() * sizeof(XYZPoint));
+    printf ("\nXYZ\n");
+    for (auto point : xyzPoints) {
+        printf ("%i %i %i\n", point.x, point.y, point.z);
     }
     
+    
+    // Release
+    library1->release();
+    kernelFunction1->release();
+    pipelineState1->release();
+    commandQueue1->release();
     equatorialPointsBuffer->release();
-    equatorialPointsRadiansBuffer->release();
-    pipelineState->release();
-    kernelFunction->release();
-    library->release();
-    commandQueue->release();
+    cartesianPointsBuffer->release();
+    computeEncoder1->release();
 
     
     
     
-    // Convert to cartesian
-    string cartesianKernelSource = readKernelSource("convert_to_cartesian.metal");
-    if (cartesianKernelSource.empty()) {
+    
+    
+    
+    // Calculate distance
+    string distanceKernelSource = readKernelSource("calculate_distances.metal");
+    if (distanceKernelSource.empty()) {
         return -1;
     }
-    NS::String* cartesianKernelNSStr = NS::String::string(cartesianKernelSource.c_str(), NS::UTF8StringEncoding);
-
-    MTL::Library* library2 = device->newLibrary(cartesianKernelNSStr, nullptr, &error);
+    NS::String* distanceKernelNSStr = NS::String::string(distanceKernelSource.c_str(), NS::UTF8StringEncoding);
+    MTL::Library* library2 = device->newLibrary(distanceKernelNSStr, nullptr, &error);
     if (!library2) {
         cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
         return -1;
     }
 
-    MTL::Function* kernelFunction2 = library2->newFunction(NS::String::string("convert_to_cartesian", NS::UTF8StringEncoding));
+    MTL::Function* kernelFunction2 = library2->newFunction(NS::String::string("calculate_distances", NS::UTF8StringEncoding));
     if (!kernelFunction2) {
         cerr << "Failed to load kernel function\n";
         return -1;
@@ -204,16 +207,21 @@ int main() {
     
     MTL::CommandQueue* commandQueue2 = device->newCommandQueue();
     
-    MTL::Buffer* bufferTwoRad = device->newBuffer(equatorialPointsRadians.data(), equatorialPointsRadians.size() * sizeof(EquatorialPointRadians), MTL::ResourceStorageModeShared);
-    vector<XYZPoint> xyzPoints(equatorialPoints.size());
     MTL::Buffer* bufferTwoXYZ = device->newBuffer(xyzPoints.data(), xyzPoints.size() * sizeof(XYZPoint), MTL::ResourceStorageModeShared);
+    vector<int> distances(xyzPoints.size());
+    MTL::Buffer* bufferTwoDistances = device->newBuffer(distances.data(), distances.size() * sizeof(int), MTL::ResourceStorageModeShared);
+    int startIndex = START_INDEX;
+    MTL::Buffer* bufferTwoStart = device->newBuffer(&startIndex, sizeof(int), MTL::ResourceStorageModeShared);
+
 
     MTL::CommandBuffer* commandBuffer2 = commandQueue2->commandBuffer();
     MTL::ComputeCommandEncoder* computeEncoder2 = commandBuffer2->computeCommandEncoder();
 
     computeEncoder2->setComputePipelineState(pipelineState2);
-    computeEncoder2->setBuffer(bufferTwoRad, 0, 0);
-    computeEncoder2->setBuffer(bufferTwoXYZ, 0, 1);
+    computeEncoder2->setBuffer(bufferTwoXYZ, 0, 0);
+    computeEncoder2->setBuffer(bufferTwoDistances, 0, 1);
+    computeEncoder2->setBuffer(bufferTwoStart, 0, 2);
+    
 
     computeEncoder2->dispatchThreads(gridSize, threadGroupSize);
     computeEncoder2->endEncoding();
@@ -221,87 +229,23 @@ int main() {
     commandBuffer2->commit();
     commandBuffer2->waitUntilCompleted();
 
-    memcpy(xyzPoints.data(), bufferTwoXYZ->contents(), xyzPoints.size() * sizeof(XYZPoint));
+    memcpy(distances.data(), bufferTwoDistances->contents(), distances.size() * sizeof(int));
     
-    printf ("\nXYZ\n");
-    for (auto point : xyzPoints) {
-        printf ("%i %i %i\n", point.x, point.y, point.z);
+    printf ("\nDistances from %s:\n", equatorialPoints[startIndex].name);
+    int i = 0;
+    for (auto distance : distances) {
+        printf ("%s:\t %i kilo light years\n", equatorialPoints[i].name, distance);
+        i++;
     }
-    
+     
+     
     bufferTwoXYZ->release();
-    bufferTwoRad->release();
+    bufferTwoDistances->release();
+    bufferTwoStart->release();
     pipelineState2->release();
     kernelFunction2->release();
     library2->release();
     commandQueue2->release();
-    
-    
-    
-    
-    // Calculate distance
-    
-    string distanceKernelSource = readKernelSource("calculate_distances.metal");
-    if (distanceKernelSource.empty()) {
-        return -1;
-    }
-    NS::String* distanceKernelNSStr = NS::String::string(distanceKernelSource.c_str(), NS::UTF8StringEncoding);
-    MTL::Library* library3 = device->newLibrary(distanceKernelNSStr, nullptr, &error);
-    if (!library3) {
-        cerr << "Failed to create library: " << error->localizedDescription()->utf8String() << "\n";
-        return -1;
-    }
-
-    MTL::Function* kernelFunction3 = library3->newFunction(NS::String::string("calculate_distances", NS::UTF8StringEncoding));
-    if (!kernelFunction3) {
-        cerr << "Failed to load kernel function\n";
-        return -1;
-    }
-
-    MTL::ComputePipelineState* pipelineState3 = device->newComputePipelineState(kernelFunction3, &error);
-    if (!pipelineState3) {
-        cerr << "Failed to create compute pipeline state: " << error->localizedDescription()->utf8String() << "\n";
-        return -1;
-    }
-    
-    MTL::CommandQueue* commandQueue3 = device->newCommandQueue();
-    
-    MTL::Buffer* bufferThreeXYZ = device->newBuffer(xyzPoints.data(), xyzPoints.size() * sizeof(XYZPoint), MTL::ResourceStorageModeShared);
-    vector<int> distances(xyzPoints.size());
-    MTL::Buffer* bufferThreeDistances = device->newBuffer(distances.data(), distances.size() * sizeof(int), MTL::ResourceStorageModeShared);
-    int startIndex = 0;
-    MTL::Buffer* bufferThreeStart = device->newBuffer(&startIndex, sizeof(int), MTL::ResourceStorageModeShared);
-
-
-    MTL::CommandBuffer* commandBuffer3 = commandQueue3->commandBuffer();
-    MTL::ComputeCommandEncoder* computeEncoder3 = commandBuffer3->computeCommandEncoder();
-
-    computeEncoder3->setComputePipelineState(pipelineState3);
-    computeEncoder3->setBuffer(bufferThreeXYZ, 0, 0);
-    computeEncoder3->setBuffer(bufferThreeDistances, 0, 1);
-    computeEncoder3->setBuffer(bufferThreeStart, 0, 2);
-    
-
-    computeEncoder3->dispatchThreads(gridSize, threadGroupSize);
-    computeEncoder3->endEncoding();
-
-    commandBuffer3->commit();
-    commandBuffer3->waitUntilCompleted();
-
-    memcpy(distances.data(), bufferThreeDistances->contents(), distances.size() * sizeof(int));
-    
-    printf ("\nDistances\n");
-    for (auto distance : distances) {
-        printf ("%i\n", distance);
-    }
-     
-     
-    bufferThreeXYZ->release();
-    bufferThreeDistances->release();
-    bufferThreeStart->release();
-    pipelineState3->release();
-    kernelFunction3->release();
-    library3->release();
-    commandQueue3->release();
     device->release();
 
 

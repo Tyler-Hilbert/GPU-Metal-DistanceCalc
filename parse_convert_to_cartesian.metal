@@ -8,6 +8,7 @@
 #include <metal_stdlib>
 #include "EquatorialPoint.hpp"
 #include "EquatorialPointRadians.hpp"
+#include "XYZPoint.hpp"
 
 #define M_PI  3.14159265358979323846
 
@@ -19,17 +20,18 @@ int atoi(const char str[100]);
 float atof(const char str[50]);
 
 
-// Parses equatorial points from char array and converts to radians
-kernel void convert_to_radians(
+// Parses equatorial points from char array, converts to radians, and then converts to cartesian
+kernel void parse_convert_to_cartesian(
     constant EquatorialPoint* points                [[ buffer(0) ]],
-    device EquatorialPointRadians* pointsRadians    [[ buffer(1) ]],
+    device XYZPoint* pointsXYZ                      [[ buffer(1) ]],
     uint id                                         [[ thread_position_in_grid ]]
 ) {
 
+    //// Parsing
     EquatorialPoint p = points[id];
     EquatorialPointRadians pr;
 
-    // RA
+    // Right Ascension (RA)
     int tempIndex = 0;
     char temp[50];
     int mode = 0; // 0 for hours, 1 for minutes, 2 for seconds
@@ -58,7 +60,7 @@ kernel void convert_to_radians(
     pr.RA = (h + m/60.0 + s/3600.0) * (M_PI / 12.0) ;
 
 
-    // DEC
+    // Declination (DEC)
     int d = 0;
     m = 0;
     s = 0.0;
@@ -112,7 +114,12 @@ kernel void convert_to_radians(
         pr.name[i] = p.name[i];
     }
     
-    pointsRadians[id] = pr;
+    
+    //// Conversion
+    int x = pr.lightYears * cos(pr.DEC) * cos(pr.RA);
+    int y = pr.lightYears * cos(pr.DEC) * sin(pr.RA);
+    int z = pr.lightYears * sin(pr.DEC);
+    pointsXYZ[id] = XYZPoint{x, y, z};
 }
 
 
