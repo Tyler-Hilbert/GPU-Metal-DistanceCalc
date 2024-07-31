@@ -1,7 +1,6 @@
-# What the 3 GPU kernels do
-1) convert_to_radians -- parses equatorial coordinate data out of string (parsed from wikipedia using getdata.py) and converts it to equatorial coordinates in radians.
-2) convert_to_cartesian -- converts from equatorial to cartesian coordinate system.  
-3) calculate_distances -- calculates the distance in the cartesian coordinate system.
+# What the 2 GPU kernels do
+1) parse_convert_to_cartesian -- parses equatorial coordinate data out of string (parsed from wikipedia using getdata.py) and converts it to equatorial coordinates in radians. Then converts from equatorial to cartesian coordinate system. 
+2) calculate_distances -- calculates the distance in the cartesian coordinate system.
 
 # Install
 1) Create command line xcode project
