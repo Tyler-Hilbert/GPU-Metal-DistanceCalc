@@ -5,7 +5,7 @@
 # Install
 1) Create command line xcode project
 2) Add Metal and Foundation to your build
-3) Downlaod metal-cpp
+3) Download metal-cpp -- https://github.com/bkaradzic/metal-cpp  
 4) add metal-cpp/ to header search path
 
 # Data Collection  
