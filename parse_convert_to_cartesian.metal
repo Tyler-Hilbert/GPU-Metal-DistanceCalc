@@ -18,6 +18,20 @@ using namespace metal;
 
 int atoi(const char str[100]);
 float atof(const char str[50]);
+void convertRadToCart(const thread EquatorialPointRadians& pr, device XYZPoint& pointXYZ);
+
+
+// Packed conversion of equatorial radians to cartesian
+void convertRadToCart(const thread EquatorialPointRadians& pr, device XYZPoint& pointXYZ){
+    float cosDEC = cos(pr.DEC);
+    float3 sphericalCoords = float3(
+        cosDEC * cos(pr.RA),
+        cosDEC * sin(pr.RA),
+        sin(pr.DEC)
+    );
+    int3 cartesianCoords = int3(sphericalCoords * pr.lightYears);
+    pointXYZ = XYZPoint{cartesianCoords.x, cartesianCoords.y, cartesianCoords.z};
+}
 
 
 // Parses equatorial points from char array, converts to radians, and then converts to cartesian
@@ -115,11 +129,9 @@ kernel void parse_convert_to_cartesian(
     }
     
     
+    
     //// Conversion
-    int x = pr.lightYears * cos(pr.DEC) * cos(pr.RA);
-    int y = pr.lightYears * cos(pr.DEC) * sin(pr.RA);
-    int z = pr.lightYears * sin(pr.DEC);
-    pointsXYZ[id] = XYZPoint{x, y, z};
+    convertRadToCart(pr, pointsXYZ[id]);
 }
 
 
