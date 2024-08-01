@@ -18,11 +18,10 @@ kernel void calculate_distances(
     constant int& startIndex            [[buffer(2)]],
     uint id                             [[ thread_position_in_grid ]]
 ) {
-    // Differences
-    int dx = points[startIndex].x - points[id].x;
-    int dy = points[startIndex].y - points[id].y;
-    int dz = points[startIndex].z - points[id].z;
+    int3 startPoint = int3(points[startIndex].x, points[startIndex].y, points[startIndex].z);
+    int3 distancePoint = int3(points[id].x, points[id].y, points[id].z);
+    int3 diff = startPoint - distancePoint;
+    int3 squaredDiff = diff * diff;
     
-    // Update
-    distances[id] = (int)sqrt((float)(dx*dx + dy*dy + dz*dz)); // Note -- Assuming sqrt is implemented in hw so calculating as float and converting to int is quicker than implementing function as int
+    distances[id] = (int) sqrt( (float) (squaredDiff.x + squaredDiff.y + squaredDiff.z));
 }
