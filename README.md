@@ -248,117 +248,117 @@ XYZ
   
   
 Kernel Path YOUR_PATH/GPU-Metal-DistanceCalc/GPU-Metal-DistanceCalc/calculate_distances.metal  
-  
-Distances from Milky Way:  
-Milky Way:	 0 kilo light years  
-Canis Major Dwarf:	 42 kilo light years  
-Segue 1:	 81 kilo light years  
-Sagittarius Dwarf Sphr SagDEG:	 40 kilo light years  
-Ursa Major II Dwarf:	 96 kilo light years  
-Triangulum II:	 103 kilo light years  
-Reticulum II:	 105 kilo light years  
-Segue 2:	 124 kilo light years  
-Willman 1:	 119 kilo light years  
-Boötes II:	 124 kilo light years  
-Coma Berenices Dwarf:	 134 kilo light years  
-Boötes III:	 136 kilo light years  
-Large Magellanic Cloud (LMC):	 138 kilo light years  
-Boötes I:	 180 kilo light years  
-Small Magellanic Cloud (SMC NGC 292):	 193 kilo light years  
-Ursa Minor Dwarf:	 181 kilo light years  
-Draco Dwarf (DDO 208):	 238 kilo light years  
-Pisces Overdensity:	 260 kilo light years  
-Sextans Dwarf Sph:	 296 kilo light years  
-Sculptor Dwarf (ESO 351-G30):	 292 kilo light years  
-Virgo I:	 274 kilo light years  
-Ursa Major I Dwarf (UMa I dSph):	 324 kilo light years  
-Carina Dwarf (ESO 206-G220):	 333 kilo light years  
-Crater II:	 379 kilo light years  
-Antlia 2:	 420 kilo light years  
-Hercules Dwarf:	 455 kilo light years  
-Fornax Dwarf (ESO 356-G04):	 471 kilo light years  
-Canes Venatici II Dwarf:	 478 kilo light years  
-Leo IV Dwarf:	 520 kilo light years  
-Leo V Dwarf:	 584 kilo light years  
-Pisces II:	 577 kilo light years  
-Leo II Dwarf (Leo B DDO 93):	 685 kilo light years  
-Canes Venatici I Dwarf:	 695 kilo light years  
-Leo I Dwarf (DDO 74 UGC 5470):	 823 kilo light years  
-Eridanus II:	 1211 kilo light years  
-Leo T Dwarf:	 1372 kilo light years  
-Phoenix Dwarf Galaxy (P 6830):	 1438 kilo light years  
-Barnard's Galaxy (NGC 6822):	 1607 kilo light years  
-NGC 185:	 2043 kilo light years  
-Andromeda II:	 2221 kilo light years  
-IC 1613 (UGC 668):	 2389 kilo light years  
-Leo A (Leo III DDO 69):	 2602 kilo light years  
-Andromeda XI:	 2596 kilo light years  
-IC 10 (UGC 192):	 2491 kilo light years  
-Andromeda III:	 2436 kilo light years  
-Cassiopeia Dwarf (Cas dSph Andromeda VII):	 2439 kilo light years  
-Cetus Dwarf:	 2462 kilo light years  
-M32 (NGC 221):	 2485 kilo light years  
-Andromeda IX:	 2495 kilo light years  
-Pisces Dwarf (LGS 3):	 2514 kilo light years  
-Andromeda V:	 2517 kilo light years  
-NGC 147 (DDO 3):	 2524 kilo light years  
-Andromeda Galaxy (M31):	 2495 kilo light years  
-Pegasus Dwarf Spheroidal (Andromeda VI):	 2693 kilo light years  
-Andromeda I:	 2396 kilo light years  
-M110 (NGC 205):	 2684 kilo light years  
-Andromeda VIII:	 2695 kilo light years  
-Triangulum Galaxy (M33):	 3202 kilo light years  
-Andromeda XXI[64]:	 2791 kilo light years  
-Tucana Dwarf:	 3186 kilo light years  
-Pegasus Dwarf Irregular (DDO 216):	 2995 kilo light years  
-Wolf-Lundmark-Melotte (WLM DDO 221):	 3040 kilo light years  
-Andromeda XIX[67]:	 2647 kilo light years  
-Andromeda XXII[64]:	 3072 kilo light years  
-Aquarius Dwarf Galaxy (DDO 210):	 3180 kilo light years  
-Sagittarius Dwarf Irregular Galaxy (SagDIG):	 3367 kilo light years  
-UGC 4879 (VV124)[69]:	 4176 kilo light years  
-Andromeda XVIII[67]:	 4414 kilo light years  
-Antlia Dwarf:	 1319 kilo light years  
-Sextans A (UGCA 205 DDO 75):	 4314 kilo light years  
-NGC 3109:	 1332 kilo light years  
-Sextans B (UGC 5373):	 4444 kilo light years  
-Leo P:	 5284 kilo light years  
-IC 5152:	 5855 kilo light years  
-NGC 300:	 6065 kilo light years  
-KKR 25:	 6347 kilo light years  
-NGC 55:	 6495 kilo light years  
-UGC 9128 (DDO 187):	 7280 kilo light years  
-GR 8 (DDO 155):	 7891 kilo light years  
-IC 4662 (ESO 102-14):	 7939 kilo light years  
-UGC 8508 (I Zw 060):	 8483 kilo light years  
-Dwingeloo 1:	 9996 kilo light years  
-UGC 9240 (DDO 190):	 9895 kilo light years  
-UGCA 133 (DDO 44):	 9816 kilo light years  
-NGC 4163 (NGC 4167):	 9638 kilo light years  
-UGCA 86:	 9715 kilo light years  
-NGC 1560:	 9744 kilo light years  
-Dwingeloo 2:	 9996 kilo light years  
-MB 3:	 9997 kilo light years  
-Maffei 2:	 9795 kilo light years  
-Donatiello I:	 9700 kilo light years  
-NGC 2403:	 9646 kilo light years  
-NGC 404:	 9999 kilo light years  
-KKH 22:	 10694 kilo light years  
-NGC 3741:	 9991 kilo light years  
-NGC 2366:	 9995 kilo light years  
-NGC 1569 (UGC 3056):	 10957 kilo light years  
-Sculptor dIG (ESO 349–31):	 10436 kilo light years  
-IC 342:	 10694 kilo light years  
-Holmberg II (DDO 50 UGC 4305):	 11053 kilo light years  
-NGC 5102:	 12083 kilo light years  
-ESO 540-030 (KDG 2):	 11350 kilo light years  
-NGC 247:	 11100 kilo light years  
-Sculptor Galaxy (NGC 253):	 11398 kilo light years  
-Messier 82:	 11891 kilo light years  
-NGC 5253:	 10883 kilo light years  
-NGC 2976:	 11592 kilo light years  
-NGC 4945:	 11683 kilo light years  
-NGC 6789:	 11980 kilo light years  
-Messier 81:	 11792 kilo light years  
-Holmberg IX (UGC 5336 DDO 66):	 11992 kilo light years  
-Centaurus A (NGC 5128):	 11983 kilo light years  
+
+Distances from Segue 1:  
+Milky Way:	 81 kilo light years  
+Canis Major Dwarf:	 59 kilo light years  
+Segue 1:	 0 kilo light years  
+Sagittarius Dwarf Sphr SagDEG:	 110 kilo light years  
+Ursa Major II Dwarf:	 78 kilo light years  
+Triangulum II:	 134 kilo light years  
+Reticulum II:	 121 kilo light years  
+Segue 2:	 156 kilo light years  
+Willman 1:	 76 kilo light years  
+Boötes II:	 96 kilo light years  
+Coma Berenices Dwarf:	 85 kilo light years  
+Boötes III:	 108 kilo light years  
+Large Magellanic Cloud (LMC):	 182 kilo light years  
+Boötes I:	 169 kilo light years  
+Small Magellanic Cloud (SMC NGC 292):	 214 kilo light years  
+Ursa Minor Dwarf:	 187 kilo light years  
+Draco Dwarf (DDO 208):	 263 kilo light years  
+Pisces Overdensity:	 329 kilo light years  
+Sextans Dwarf Sph:	 218 kilo light years  
+Sculptor Dwarf (ESO 351-G30):	 327 kilo light years  
+Virgo I:	 220 kilo light years  
+Ursa Major I Dwarf (UMa I dSph):	 272 kilo light years  
+Carina Dwarf (ESO 206-G220):	 297 kilo light years  
+Crater II:	 310 kilo light years  
+Antlia 2:	 363 kilo light years  
+Hercules Dwarf:	 480 kilo light years  
+Fornax Dwarf (ESO 356-G04):	 488 kilo light years  
+Canes Venatici II Dwarf:	 428 kilo light years  
+Leo IV Dwarf:	 450 kilo light years  
+Leo V Dwarf:	 514 kilo light years  
+Pisces II:	 654 kilo light years  
+Leo II Dwarf (Leo B DDO 93):	 618 kilo light years  
+Canes Venatici I Dwarf:	 659 kilo light years  
+Leo I Dwarf (DDO 74 UGC 5470):	 745 kilo light years  
+Eridanus II:	 1207 kilo light years  
+Leo T Dwarf:	 1292 kilo light years  
+Phoenix Dwarf Galaxy (P 6830):	 1463 kilo light years  
+Barnard's Galaxy (NGC 6822):	 1674 kilo light years  
+NGC 185:	 2076 kilo light years  
+Andromeda II:	 2251 kilo light years  
+IC 1613 (UGC 668):	 2430 kilo light years  
+Leo A (Leo III DDO 69):	 2529 kilo light years  
+Andromeda XI:	 2640 kilo light years  
+IC 10 (UGC 192):	 2514 kilo light years  
+Andromeda III:	 2478 kilo light years  
+Cassiopeia Dwarf (Cas dSph Andromeda VII):	 2478 kilo light years  
+Cetus Dwarf:	 2516 kilo light years  
+M32 (NGC 221):	 2524 kilo light years  
+Andromeda IX:	 2531 kilo light years  
+Pisces Dwarf (LGS 3):	 2549 kilo light years  
+Andromeda V:	 2539 kilo light years  
+NGC 147 (DDO 3):	 2556 kilo light years  
+Andromeda Galaxy (M31):	 2533 kilo light years  
+Pegasus Dwarf Spheroidal (Andromeda VI):	 2753 kilo light years  
+Andromeda I:	 2436 kilo light years  
+M110 (NGC 205):	 2722 kilo light years  
+Andromeda VIII:	 2733 kilo light years  
+Triangulum Galaxy (M33):	 3233 kilo light years  
+Andromeda XXI[64]:	 2837 kilo light years  
+Tucana Dwarf:	 3213 kilo light years  
+Pegasus Dwarf Irregular (DDO 216):	 3061 kilo light years  
+Wolf-Lundmark-Melotte (WLM DDO 221):	 3093 kilo light years  
+Andromeda XIX[67]:	 2690 kilo light years  
+Andromeda XXII[64]:	 3104 kilo light years  
+Aquarius Dwarf Galaxy (DDO 210):	 3255 kilo light years  
+Sagittarius Dwarf Irregular Galaxy (SagDIG):	 3432 kilo light years  
+UGC 4879 (VV124)[69]:	 4121 kilo light years  
+Andromeda XVIII[67]:	 4449 kilo light years  
+Antlia Dwarf:	 1246 kilo light years  
+Sextans A (UGCA 205 DDO 75):	 4235 kilo light years  
+NGC 3109:	 1259 kilo light years  
+Sextans B (UGC 5373):	 4366 kilo light years  
+Leo P:	 5208 kilo light years  
+IC 5152:	 5898 kilo light years  
+NGC 300:	 6106 kilo light years  
+KKR 25:	 6353 kilo light years  
+NGC 55:	 6534 kilo light years  
+UGC 9128 (DDO 187):	 7258 kilo light years  
+GR 8 (DDO 155):	 7834 kilo light years  
+IC 4662 (ESO 102-14):	 7949 kilo light years  
+UGC 8508 (I Zw 060):	 8454 kilo light years  
+Dwingeloo 1:	 10000 kilo light years  
+UGC 9240 (DDO 190):	 9874 kilo light years  
+UGCA 133 (DDO 44):	 9781 kilo light years  
+NGC 4163 (NGC 4167):	 9587 kilo light years  
+UGCA 86:	 9708 kilo light years  
+NGC 1560:	 9730 kilo light years  
+Dwingeloo 2:	 10000 kilo light years  
+MB 3:	 10001 kilo light years  
+Maffei 2:	 9799 kilo light years  
+Donatiello I:	 9729 kilo light years  
+NGC 2403:	 9610 kilo light years  
+NGC 404:	 10028 kilo light years  
+KKH 22:	 10687 kilo light years  
+NGC 3741:	 9936 kilo light years  
+NGC 2366:	 9962 kilo light years  
+NGC 1569 (UGC 3056):	 10941 kilo light years  
+Sculptor dIG (ESO 349–31):	 10479 kilo light years  
+IC 342:	 10687 kilo light years  
+Holmberg II (DDO 50 UGC 4305):	 11020 kilo light years  
+NGC 5102:	 12046 kilo light years  
+ESO 540-030 (KDG 2):	 11401 kilo light years  
+NGC 247:	 11150 kilo light years  
+Sculptor Galaxy (NGC 253):	 11446 kilo light years  
+Messier 82:	 11856 kilo light years  
+NGC 5253:	 10845 kilo light years  
+NGC 2976:	 11554 kilo light years  
+NGC 4945:	 11651 kilo light years  
+NGC 6789:	 12004 kilo light years  
+Messier 81:	 11756 kilo light years  
+Holmberg IX (UGC 5336 DDO 66):	 11956 kilo light years  
+Centaurus A (NGC 5128):	 11948 kilo light years  
