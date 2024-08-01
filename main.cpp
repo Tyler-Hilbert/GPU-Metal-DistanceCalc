@@ -22,7 +22,6 @@
 
 #include "XYZPoint.hpp"
 #include "EquatorialPoint.hpp"
-#include "EquatorialPointRadians.hpp"
 
 
 using namespace std;

@@ -16,4 +16,12 @@ struct EquatorialPoint {
     char lightYears[100]; // Kilo light years from Earth. Size of 100 because sometimes while parsing grabs extra junk.
 };
 
+// Equatorial Point in Radians
+struct EquatorialPointRadians {
+    char name[50]; // Name of Galaxy
+    float RA; // Right Ascension in radians
+    float DEC; // Declination in radians
+    int lightYears; // Kilo light years from Earth
+};
+
 #endif /* EquatorialPoint_h */

@@ -7,7 +7,6 @@
 
 #include <metal_stdlib>
 #include "EquatorialPoint.hpp"
-#include "EquatorialPointRadians.hpp"
 #include "XYZPoint.hpp"
 
 #define M_PI  3.14159265358979323846
